@@ -2,6 +2,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -16,41 +17,47 @@ namespace API.Controllers
     {
         private readonly DataContext context;
         private readonly ITokenService tokenService;
+        private readonly IMapper mapper;
 
-        public AccountController(DataContext context, ITokenService tokenService)
+        public AccountController(DataContext context, ITokenService tokenService, IMapper mapper)
         {
             this.context = context;
             this.tokenService = tokenService;
-        } 
+            this.mapper = mapper;
+        }
 
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> RegisterUser(RegisterDto registerDto)
         {
             if (await this.UserExist(registerDto.Username)) return BadRequest("User already exist");
 
+            var user = mapper.Map<AppUser>(registerDto);
+
             using var hmac = new HMACSHA512();
 
-            AppUser user = new AppUser()
-            {
-                UserName = registerDto.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key
-            };
+
+            user.UserName = registerDto.Username.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+            user.PasswordSalt = hmac.Key;
+
 
             this.context.Users.Add(user);
             await this.context.SaveChangesAsync();
-            
+
             return new UserDto
             {
                 Username = user.UserName,
-                Token = tokenService.CreateToken(user)
+                Token = tokenService.CreateToken(user),
+                KnownAs = user.KnownAs
             };
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>>LoginUser(LoginDto loginDto)
         {
-            AppUser user = await this.context.Users.SingleOrDefaultAsync<AppUser>(user => user.UserName.Equals(loginDto.username));
+            AppUser user = await this.context.Users
+                .Include(u => u.Photos)
+                .SingleOrDefaultAsync<AppUser>(user => user.UserName.Equals(loginDto.username));
 
             if (user == null) return Unauthorized("user does not exist");
 
@@ -64,7 +71,9 @@ namespace API.Controllers
             return new UserDto
             {
                 Username = user.UserName,
-                Token = tokenService.CreateToken(user)
+                Token = tokenService.CreateToken(user),
+                PhotoUrl = user.Photos?.FirstOrDefault(u => u.IsMain)?.Url,
+                KnownAs = user.KnownAs
             };
         }
 

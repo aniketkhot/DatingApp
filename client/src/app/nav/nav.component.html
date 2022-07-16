@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+  <div class="container">
+
+    <div class="container-fluid">
+      <a class="navbar-brand"
+         href="#">Dating App</a>
+      <ul class="navbar-nav me-auto mb-2 mb-md-0">
+        <li class="nav-item">
+          <a class="nav-link "
+             aria-current="page"
+             href="#">Matches</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"
+             href="#">Lists</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link ">Messages</a>
+        </li>
+      </ul>
+      <form #LoginForm="ngForm"  class="d-flex" (ngSubmit)="submitForm()">
+        <input class="form-control me-2"
+               type="text"
+               placeholder="username"
+               name="username"
+               [(ngModel)]="model.username"
+               >
+        <input class="form-control me-2"
+               type="text"
+               placeholder="passwaord"
+               name="password"
+               [(ngModel)]="model.password"
+               >
+        <button class="btn btn-outline-success"
+                type="submit">Login</button>
+      </form>
+    </div>
+  </div>
+
+</nav>
