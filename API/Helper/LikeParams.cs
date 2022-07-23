@@ -7,6 +7,7 @@ namespace API.Helper
 {
     public class LikeParams: PaginationParams
     {
-        public string username { get; set; }
+        public int Id { get; set; }
+        public string Username { get; set; }
     }
 }

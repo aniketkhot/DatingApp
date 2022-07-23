@@ -26,17 +26,17 @@ namespace API.Controllers
         [HttpGet("liked")]
         public async Task<ActionResult<IEnumerable<LikeDto>>> GetUserLikes(LikeParams likeParams)
         {
-            int userId = User.GetUserId();
-            IEnumerable<LikeDto> likes = await this.likeRepository.GetLikedUsers(userId);
+            likeParams.Id = User.GetUserId();
+            IEnumerable<LikeDto> likes = await this.likeRepository.GetLikedUsers(likeParams);
             return Ok(likes);
         }
 
         [HttpGet("likedby")]
         public async Task<ActionResult<IEnumerable<LikeDto>>> GetLikedByUsers(LikeParams likeParams)
         {
-            var member = await this.userRepository.GetMemberByNameAsync(likeParams.username);
-            int userId = member.Id;
-            IEnumerable<LikeDto> likes = await this.likeRepository.GetLikedByUsers(userId);
+            var member = await this.userRepository.GetMemberByNameAsync(likeParams.Username);
+            likeParams.Id = member.Id;
+            IEnumerable<LikeDto> likes = await this.likeRepository.GetLikedByUsers(likeParams);
             return Ok(likes);
         }
 

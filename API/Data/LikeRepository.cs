@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using API.DTOs;
 using API.Extentions;
+using API.Helper;
 
 namespace API.Data
 {
@@ -37,13 +38,13 @@ namespace API.Data
             return await this.dataContext.SaveChangesAsync() >= 1;
         }
 
-        public async Task<IEnumerable<LikeDto>> GetLikedUsers(int sourceUserId)
+        public async Task<IEnumerable<LikeDto>> GetLikedUsers(LikeParams likeParams)
         {
-            var query = this.dataContext.Users.Where(u => u.Id == sourceUserId)
+            var query = this.dataContext.Users.Where(u => u.Id == likeParams.Id)
                                             .Include(u => u.LikedUsers)
                                             .ThenInclude(lu => lu.TargetUser)
                                             .Select(u => u.LikedUsers);
-            var user = await query.SelectMany(collectionOfLikes => collectionOfLikes.Select(l => new LikeDto
+            var user = query.SelectMany(collectionOfLikes => collectionOfLikes.Select(l => new LikeDto
             {
                 Id = l.TargetUser.Id,
                 Age = l.TargetUser.DateOfBirth.CalculateAge(),
@@ -51,19 +52,21 @@ namespace API.Data
                 KnownAs = l.TargetUser.KnownAs,
                 PhotoUrl = l.TargetUser.Photos.FirstOrDefault(p => p.IsMain).Url,
                 Username = l.TargetUser.UserName
-            })).ToListAsync();
-            return user;
+            }));
+
+            var users = await PagedList<LikeDto>.CreateAsync(user, likeParams.PageSize, likeParams.PageNumber);
+            return users;
         }
 
-        public async Task<IEnumerable<LikeDto>> GetLikedByUsers(int sourceUserId)
+        public async Task<IEnumerable<LikeDto>> GetLikedByUsers(LikeParams likeParams)
         {
             var query = this.dataContext.Users.AsQueryable()
-                                        .Where(u => u.Id == sourceUserId)
+                                        .Where(u => u.Id == likeParams.Id)
                                         .Include(u => u.LikedByUsers)
                                         .SelectMany(u => u.LikedByUsers.Select(l => l.SourceUser));
 
 
-            var user = await query.Select(u => new LikeDto
+            var user = query.Select(u => new LikeDto
             {
                 Id = u.Id,
                 Age = u.DateOfBirth.CalculateAge(),
@@ -72,8 +75,10 @@ namespace API.Data
                 PhotoUrl = u.Photos.FirstOrDefault(p => p.IsMain).Url,
                 Username = u.UserName
             }
-            ).ToListAsync();
-            return user;
+            );
+            var users = await PagedList<LikeDto>.CreateAsync(user, likeParams.PageSize, likeParams.PageNumber);
+
+            return users;
         }
 
         public async Task<bool> RemoveLike(int sourceUserId, int targetUserId)
