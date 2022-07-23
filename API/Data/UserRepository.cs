@@ -77,12 +77,12 @@ namespace API.Data
             query = query.Where(m => m.Gender == userParams.Gender);
 
             //code copied from course
-            //var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
-            //var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
-            //query = query.Where(m => m.DateOfBirth >= minDob && m.DateOfBirth<= maxDob);
+            var minDob = DateTime.Today.AddYears(-userParams.MaxAge - 1);
+            var maxDob = DateTime.Today.AddYears(-userParams.MinAge);
+            query = query.Where(m => m.DateOfBirth >= minDob && m.DateOfBirth <= maxDob);
 
             // TODO: for Neil - may be because of this line is is failing
-            query = query.Where(m => (m.DateOfBirth - System.DateTime.Now).TotalDays / 365 > userParams.MinAge);
+            //query = query.Where(m => (m.DateOfBirth - System.DateTime.Now).TotalDays / 365 > userParams.MinAge);
 
             query = userParams.OrderBy switch
             {

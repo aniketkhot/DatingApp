@@ -15,5 +15,27 @@ namespace API.Data
         }
 
         public DbSet<AppUser> Users { get; set; }
+
+        public DbSet<Like> Likes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Like>()
+                .HasKey(l => new { l.TargetUserId, l.SourceUserId });
+
+            modelBuilder.Entity<Like>()
+                .HasOne(l => l.SourceUser)
+                .WithMany(u => u.LikedUsers)
+                .HasForeignKey(l => l.SourceUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Like>()
+                .HasOne(l => l.TargetUser)
+                .WithMany(u => u.LikedByUsers)
+                .HasForeignKey(u => u.TargetUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
