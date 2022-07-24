@@ -24,7 +24,7 @@ namespace API.Controllers
         }
 
         [HttpGet("liked")]
-        public async Task<ActionResult<IEnumerable<LikeDto>>> GetUserLikes(LikeParams likeParams)
+        public async Task<ActionResult<IEnumerable<LikeDto>>> GetUserLikes([FromQuery] LikeParams likeParams)
         {
             likeParams.Id = User.GetUserId();
             IEnumerable<LikeDto> likes = await this.likeRepository.GetLikedUsers(likeParams);
@@ -32,7 +32,7 @@ namespace API.Controllers
         }
 
         [HttpGet("likedby")]
-        public async Task<ActionResult<IEnumerable<LikeDto>>> GetLikedByUsers(LikeParams likeParams)
+        public async Task<ActionResult<IEnumerable<LikeDto>>> GetLikedByUsers([FromQuery]LikeParams likeParams)
         {
             var member = await this.userRepository.GetMemberByNameAsync(likeParams.Username);
             likeParams.Id = member.Id;
